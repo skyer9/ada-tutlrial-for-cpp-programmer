@@ -443,7 +443,7 @@ end test;
 
 ### Ada 타입 심화
 
-###* Casting
+#### Casting
 
 `Casting` 기능이 있습니다.(와우!! 살았다!!)
 
@@ -471,7 +471,7 @@ end test;
 
 캐스팅은 유사한 데이타 타입 사이에서만 가능합니다. 서로 다른 타입 사이의 캐스팅은 `Unchecked_Conversion` 을 이용해 가능하며 나중에 설명됩니다.
 
-###* Procedure type
+#### Procedure type
 
 C 에 있는 함수 포인터 기능을 사용할 수 있습니다.
 
@@ -488,7 +488,7 @@ begin
 end test;
 ```
 
-###* Discriminant type
+#### Discriminant type
 
 타입생성시 파라미터를 부여할 수 있습니다.
 
@@ -518,7 +518,7 @@ end test;
 
 파라미터에 디폴트 값을 부여할 수 있습니다. 런터임 오류를 방지하기 위해 디폴트값은 최대값이 설정되어 있어야 합니다.
 
-###* Variant record
+#### Variant record
 
 파라미터에 따라 레코드 타입의 변수를 다르게 생성할 수 있습니다.
 
@@ -555,7 +555,7 @@ end test;
 
 가변형 레코드에 대해 `subtype` 을 생성할 수 있습니다.
 
-###* Exceptions
+#### Exceptions
 
 예외를 처리할 수 있습니다.
 
@@ -575,6 +575,404 @@ begin
 exception
     when parameter_out_of_range => Put_Line("parameter_out_of_range");
 end test;
+```
+
+#### 시스템 데이타를 위한 변수 타입
+
+`Size` 속성을 이용해 타입의 비트 수를 지정할 수 있습니다.
+
+열거형 타입에 정수값을 지정해 줄 수 있습니다.
+
+생성된 변수의 메모리 주소를 지정해 줄 수 있습니다. 숫자의 표현은 `진수#숫자#` 형식으로 표현할 수 있습니다.
+숫자에 `_` 을 입력해 가독성을 높일 수 있습니다.
+
+```ada
+with Ada.Text_IO;                   use Ada.Text_IO;
+with System;                        use System;
+
+procedure test
+is
+	type BYTE is range 0 .. 255;
+	for  BYTE'Size use 8;
+
+	type DEV_Activity is (READING, WRITING, IDLE);
+	for  DEV_Activity use (READING => 1, WRITING => 2, IDLE => 3);
+
+	type DEV_Available is new BYTE;
+	Avail_Flag : DEV_Available;
+	for Avail_Flag'Address use System'To_Address(16#00000340#);
+
+	-- base#number#
+	Is_Available : constant BYTE := 2#1000_0000#;
+	Not_Available: constant BYTE := 2#0000_0000#;
+
+	type DEV_Status is range 0 .. 15;
+
+	type DeviceDetails is
+		record
+			status : DEV_Activity;
+			rd_stat: DEV_Status;
+			wr_stat: DEV_Status;
+		end record;
+
+	-- use two bytes, for status in first byte, for rd_stat/wr_stat in second byte.
+	for DeviceDetails use
+		record at mod 2;
+			status  at 0 range 0 .. 7;
+			rd_stat at 1 range 0 .. 3;
+			wr_stat at 1 range 4 .. 7;
+		end record;
+begin
+	Put_Line("");
+end test;
+```
+
+마지막으로 `at mod 2` 와 깉은 방식으로 타입의 바이트 수를 지정해 줄 수 있습니다.
+`at 0`, `at 1` 등을 입력해서 변수의 저장 위치를 지정해 줄 수 있습니다.
+
+### C++ 문법과 대응하는 Ada 문법
+
+#### Compound Statement
+
+블럭은 아래와 같이 생성할 수 있습니다.
+
+```c++
+// in c programming language
+{
+  declarations
+  statements
+}
+```
+
+```ada
+-- in ada programming language
+declare
+  declarations
+begin
+  statement
+end;
+```
+
+#### if Statement
+
+```c++
+// in c programming language
+if (expression) {
+  statement
+} else {
+  statement
+}
+```
+
+```ada
+-- in ada programming language
+if expression then
+  statement
+elsif expression then
+  statement
+else
+  statement
+end if;
+```
+
+#### switch Statement
+
+Ada 에는 `break` 를 입력하지 않아도 됩니다.
+
+```c++
+// in c programming language
+switch (expression)
+{
+  case value: statement
+  default:    statement
+}
+```
+
+```ada
+-- in ada programming language
+case expression is
+  when value => statement
+  when others => statement
+end case;
+```
+
+범위 연산자를 `case` 문에 사용할 수 있습니다.
+
+```c++
+// in c programming language
+switch (integer_value) {
+case 1:
+case 2:
+case 3:
+case 4:
+  value_ok = 1;
+  break;
+case 5:
+case 6:
+case 7:
+  break;
+}
+```
+
+```ada
+-- in ada programming language
+case integer_value is
+  when 1 .. 4    => value_ok := 1;
+  when 5 | 6 | 7 => null;
+end case;
+```
+
+처리해야할 내용이 없을 경우 `null` 을 지정해 컴파일 오류를 막을 수 있습니다.
+
+### 반복 구문
+
+```ada
+loop
+  statement
+end loop;
+```
+
+```ada
+while expression loop
+  statement
+end loop;
+```
+
+```ada
+for ident in range loop
+  statement
+end loop;
+```
+
+```ada
+for i in 1 .. 10 loop
+  null;
+end loop;
+```
+
+`reverse` 키워드를 이용해 거꾸로 루프를 돌 수 있습니다.
+
+```ada
+for i in reverse 1 .. 10 loop
+  null;
+end loop;
+```
+
+C++ 에서 `break` 키워드는 `exit` 이 같은 기능을 합니다. `continue` 에 대응하는 키워드는 없습니다.
+
+```ada
+while expression loop
+  if expression2 then
+    exit;
+  end if;
+end loop;
+
+while expression loop
+  exit when expression2;
+end loop;
+```
+
+```ada
+Main_Loop:
+  while not End_Of_File(File_Handle) loop
+    for Char_Index in Buffer'Range loop
+      exit when Buffer(Char_Index) = NEW_LINE;
+      exit Main_Loop when Buffer(Char_Index) = PERCENT;
+    end loop;
+  end loop Main_Loop;
+```
+
+### exception handling
+
+`raise` 를 이용해 나머지 예외를 그대로 상위 프로시져로 전달합니다.
+
+```ada
+begin
+  statement1
+exception
+  when ident => statement2
+  when others => statement2
+end;
+
+begin
+  function_call;
+exception
+  when the_one_we_want => handle_it;
+  when others          => raise;
+end;
+```
+
+### Procedure vs Function
+
+`function` 은 리턴값을 가질수도 있고 없을 수도 있지만, `procedure` 는 리턴값을 가질 수 없습니다.
+
+`function` 은 구문 안에서 사용될 수 있지만, `procedure` 는 구문안에서 사용될 수 없습니다.
+
+`function` 은 아래와 같이 정의할 수 있습니다.
+
+```c++
+return_type func_name(parameters);
+return_type func_name(parameters)
+{
+  declarations
+  statement
+}
+```
+
+```ada
+function func_name(parameters) return return_type;
+function func_name(parameters) return return_type is
+  declarations
+begin
+  statement
+end func_name
+```
+
+리턴 값이 없는 함수(Ada 에서는 프로시저)는 아래와 같이 생성할 수 있습니다.
+
+```c++
+void func_name(parameters);
+```
+
+```ada
+procedure func_name(parameters);
+```
+
+리턴값을 가질 수는 없지만, 파라미터를 이용해 값을 받을 수 있습니다.
+
+```ada
+type int      is new Integer;
+type int_star is access int;
+procedure func1(by_value     : in     int);
+procedure func2(by_address   : in out int_star);
+procedure func3(by_reference : in out int);
+```
+
+파라미터가 없는 함수 또는 프로시저는 아래와 같이 정의할 수 있습니다.
+
+```ada
+procedure func_name;
+function func_name return Integer;
+```
+
+아래와 같이 함수의 `overloading` 이 가능합니다.
+
+```ada
+function Day return All_Days;
+function Day(a_date : in Date_Type) return All_Days;
+```
+
+아래와 같이 연산자 오버로딩도 가능합니다. C++ 과 다르게 클래스 없이도 생성 가능합니다.
+
+```ada
+function "+"(Left, Right : in Integer) return Integer;
+```
+
+오버로딩 가능한 연산자는 아래와 같습니다.
+
+```ada
+=	<	<=	>	>=
++	-	&	abs	not
+*	/	mod	rem	**
+and	or	xor
+```
+
+파라미터의 전달 방식은 `in`, `out` 키워드를 이용해 파라미터의 입출력 방식을 정하고 있습니다.
+
+```ada
+procedure proc(Parameter : in     Integer);
+procedure proc(Parameter :    out Integer);
+procedure proc(Parameter : in out Integer);
+procedure proc(Parameter :        Integer);
+```
+
+파라미터에는 디폴트값을 지정해 줄 수 있습니다.
+
+```ada
+procedure Create
+  (File : in out File_Type;
+   Mode : in     File_Mode := Inout_File;
+   Name : in     String    := "";
+   Form : in     String    := "");
+```
+
+프로시저는 내장 프로시저를 가질 수 있습니다.
+
+```ada
+procedure Sort(Sort_This : in out An_Array)
+is
+  procedure Swap(Item_1, Item_2 : in out Array_Type)
+  is
+  begin
+  end Swap;
+begin
+end Sort;
+```
+
+```ada
+```
+
+```ada
+```
+
+```ada
+```
+
+```ada
+```
+
+```ada
+```
+
+```ada
+```
+
+```ada
+```
+
+```ada
+```
+
+```ada
+```
+
+```ada
+```
+
+```ada
+```
+
+```ada
+```
+
+```ada
+```
+
+```ada
+```
+
+```ada
+```
+
+```ada
+```
+
+```ada
+```
+
+```ada
+```
+
+```ada
+```
+
+```ada
+```
+
+```ada
+```
+
+```ada
 ```
 
 ## Under Translation & Writing
