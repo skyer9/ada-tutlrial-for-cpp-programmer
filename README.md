@@ -909,70 +909,34 @@ begin
 end Sort;
 ```
 
-```ada
-```
+### Ada 안정성
 
 ```ada
-```
+with Ada.Unchecked_Conversion;
+with Ada.Text_IO;					use Ada.Text_IO;
+with Ada.Integer_Text_IO;
 
-```ada
-```
+procedure Test is
+	type Color is (Red, Yellow, Blue);
+	for Color'Size use Integer'Size;
 
-```ada
-```
+	function Integer_To_Color is
+      new Ada.Unchecked_Conversion (Source => Integer,
+                                    Target => Color);
 
-```ada
-```
+	Possible_Color : Color;
+	Number         : Integer;
+begin
+	Put_Line("enter number");
+	Ada.Integer_Text_IO.Get (Number);
+	Possible_Color := Integer_To_Color (Number);
 
-```ada
-```
-
-```ada
-```
-
-```ada
-```
-
-```ada
-```
-
-```ada
-```
-
-```ada
-```
-
-```ada
-```
-
-```ada
-```
-
-```ada
-```
-
-```ada
-```
-
-```ada
-```
-
-```ada
-```
-
-```ada
-```
-
-```ada
-```
-
-```ada
-```
-
-```ada
-```
-
-```ada
+	if Possible_Color'Valid then
+		Ada.Text_IO.Put_Line(Color'Image(Possible_Color));
+	else
+		Ada.Text_IO.Put_Line("Number does not correspond to a color.");
+	end if;
+end Test;
 ```
 
 ## Under Translation & Writing
